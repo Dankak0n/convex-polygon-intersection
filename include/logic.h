@@ -32,8 +32,6 @@ public:
     void update_status();
     void debug();
     void justDraw(sf::RenderWindow& window);
-    void addingTriangle();
-    void grabbingTriangle();
     void renew();
     void start();
 };

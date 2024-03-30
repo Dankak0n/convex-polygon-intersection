@@ -104,6 +104,26 @@ void drawPolygon(sf::RenderWindow& window,
     }
 }
 
+void drawArea(sf::RenderWindow& window, long double area) {
+    area /= std::pow(constants::GRID_SIZE, 2);
+    geometry::ConvexPolygon polygon {
+        geometry::Point{constants::WINDOW_W - 230.F, constants::WINDOW_H - 90.F},
+        geometry::Point{constants::WINDOW_W * 1.F - 30, constants::WINDOW_H - 90.F},
+        geometry::Point{constants::WINDOW_W - 230.F, constants::WINDOW_H * 1.F - 30},
+        geometry::Point{constants::WINDOW_W * 1.F - 30, constants::WINDOW_H * 1.F - 30},
+    };
+    drawPolygon(window, polygon, sf::Color::White);
+
+    sf::Text area_text;
+    sf::Font font;
+    font.loadFromFile("../src/fonts/times.ttf");
+    area_text.setString(std::string(std::to_string(area)));
+    area_text.setFont(font);
+    area_text.setPosition(constants::WINDOW_W - 190, constants::WINDOW_H - 80);
+    area_text.setFillColor(sf::Color::Black);
+    window.draw(area_text);
+}
+
 void Logic::justDraw(sf::RenderWindow& window) {
     drawGrid(window);
     for (geometry::ConvexPolygon polygon : polygons) {
@@ -118,17 +138,7 @@ void Logic::justDraw(sf::RenderWindow& window) {
         drawPolygon(window, being_drawn_polygon_copy, constants::BEING_DRAWN_COLOR);
         drawPoint(window, first_drawn_point, sf::Color::Red);
     }
-    sf::Text area_text;
-    area_text.setString(std::to_string(intersection_polygon.area()));
-    area_text.setPosition(constants::WINDOW_W - 100, constants::WINDOW_H - 100);
-    area_text.setScale(sf::Vector2f(10, 10));
-    window.draw(area_text);
-}
-void Logic::grabbingTriangle() {
-
-}
-void Logic::addingTriangle() {
-
+    drawArea(window, intersection_polygon.area());
 }
 void Logic::renew() {
     if (polygons.size() == 0) {
