@@ -3,6 +3,7 @@
 #include <iomanip>
 #include <string>
 #include <cstring>
+#include <algorithm>
 
 #include "SFML/Graphics.hpp"
 #include "SFML/Window.hpp"
@@ -23,7 +24,7 @@ sf::Color BEING_DRAWN_COLOR = sf::Color{ 130, 130, 0, 180 };
 uint32_t WINDOW_H = 600;
 uint32_t WINDOW_W = 1000;
 uint32_t CELL_SIZE = 60;
-uint32_t COLLAPSE_DIST = 10;
+uint32_t COLLAPSE_DIST = 20;
 
 }
 
@@ -87,18 +88,18 @@ void drawPolygon(sf::RenderWindow& window,
             sf::Vertex(sf::Vector2f(polygon[1].getX(), polygon[1].getY()),sf::Color::Black),
         };
         window.draw(line, 2, sf::Lines);
-        return;
+    } else {
+        sf::ConvexShape polygon_to_draw;
+        polygon_to_draw.setFillColor(fill_color);
+        polygon_to_draw.setPointCount(polygon.size());
+        polygon_to_draw.setOutlineColor(sf::Color::Black);
+        polygon_to_draw.setOutlineThickness(3);
+        for (int i = 0; i < polygon.size(); i++) {
+            polygon_to_draw.setPoint(i, sf::Vector2f(polygon.getPointAt(i).getX(),
+                                                    polygon.getPointAt(i).getY()));
+        }
+        window.draw(polygon_to_draw);
     }
-    sf::ConvexShape polygon_to_draw;
-    polygon_to_draw.setFillColor(fill_color);
-    polygon_to_draw.setPointCount(polygon.size());
-    polygon_to_draw.setOutlineColor(sf::Color::Black);
-    polygon_to_draw.setOutlineThickness(3);
-    for (int i = 0; i < polygon.size(); i++) {
-        polygon_to_draw.setPoint(i, sf::Vector2f(polygon.getPointAt(i).getX(),
-                                                 polygon.getPointAt(i).getY()));
-    }
-    window.draw(polygon_to_draw);
     for (int i = 0; i < polygon.size(); i++) {
         drawPoint(window, polygon.getPointAt(i));
     }
@@ -138,7 +139,19 @@ void Logic::justDraw(sf::RenderWindow& window) {
         drawPolygon(window, being_drawn_polygon_copy, constants::BEING_DRAWN_COLOR);
         drawPoint(window, first_drawn_point, sf::Color::Red);
     }
-    drawArea(window, intersection_polygon.area());
+    geometry::ConvexPolygon intersection_polygon_absolute = intersection_polygon;
+    if (being_drawn_polygon.size() > 0) {
+        sf::Vector2i mouse_pos = sf::Mouse::getPosition(window);
+        geometry::Point mouse_point = geometry::Point{1.F * mouse_pos.x, 1.F * mouse_pos.y};
+        geometry::ConvexPolygon p = being_drawn_polygon;
+        p.addPoint(mouse_point);
+        if (polygons.size() > 0) {
+            intersection_polygon_absolute = geometry::getIntersection(intersection_polygon_absolute, p);
+        } else {
+            intersection_polygon_absolute = p;
+        }
+    }
+    drawArea(window, intersection_polygon_absolute.area());
 }
 void Logic::renew() {
     if (polygons.size() == 0) {
@@ -281,13 +294,14 @@ void Logic::start() {
                     }
                 }
             }
+            justDraw(window);
         }
 
         window.clear(sf::Color::White);
         renew();
         justDraw(window);
         window.display();
-        sf::sleep(sf::milliseconds(10));
+        sf::sleep(sf::milliseconds(1));
     }
     return;
 }
