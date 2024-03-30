@@ -173,7 +173,7 @@ void Logic::start() {
             if (event.type == sf::Event::Closed) {
                 window.close();
             }
-            if (event.type == sf::Event::MouseButtonPressed || event.type == sf::Event::MouseButtonReleased) {
+            if (event.type == sf::Event::MouseButtonPressed) {
                 update_status();
                 sf::Vector2i mouse_pos = sf::Mouse::getPosition(window);
                 geometry::Point mouse_point = geometry::Point{1.F * mouse_pos.x, 1.F * mouse_pos.y};
@@ -214,6 +214,9 @@ void Logic::start() {
                     continue;
                 }
                 if (status == NOTHING) {
+                    first_drawn_point = mouse_point;
+                    being_drawn_polygon = geometry::ConvexPolygon{mouse_point};
+                    continue;
                     if (event.type == sf::Event::MouseButtonReleased) {
                         first_drawn_point = mouse_point;
                         being_drawn_polygon = geometry::ConvexPolygon{mouse_point};
