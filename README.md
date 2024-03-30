@@ -4,4 +4,4 @@
 cd convex-polygon-intersection
 build.bat
 </code></pre>
-![My Image](https://github.com/Dankak0n/convex-polygon-intersection/tree/master/outcome/Picture1.png)
+![My Image](outcome/Picture1.png)
