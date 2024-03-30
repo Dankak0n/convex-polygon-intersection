@@ -22,7 +22,7 @@ sf::Color INTERSECT_COLOR = sf::Color{ 130, 0, 0, 180 };
 sf::Color BEING_DRAWN_COLOR = sf::Color{ 130, 130, 0, 180 };
 uint32_t WINDOW_H = 600;
 uint32_t WINDOW_W = 1000;
-uint32_t GRID_SIZE = 60;
+uint32_t CELL_SIZE = 60;
 uint32_t COLLAPSE_DIST = 10;
 
 }
@@ -44,21 +44,21 @@ void Logic::update_status() {
 }
 
 bool isIntegerCoords(sf::Vector2i vector) {
-    uint32_t dx = vector.x % constants::GRID_SIZE;
-    uint32_t dy = vector.y % constants::GRID_SIZE;
-    return vector.x >= 0 && (dx < constants::COLLAPSE_DIST || dx > constants::GRID_SIZE - constants::COLLAPSE_DIST) &&
-           vector.y >= 0 && (dy < constants::COLLAPSE_DIST || dy > constants::GRID_SIZE - constants::COLLAPSE_DIST);
+    uint32_t dx = vector.x % constants::CELL_SIZE;
+    uint32_t dy = vector.y % constants::CELL_SIZE;
+    return vector.x >= 0 && (dx < constants::COLLAPSE_DIST || dx > constants::CELL_SIZE - constants::COLLAPSE_DIST) &&
+           vector.y >= 0 && (dy < constants::COLLAPSE_DIST || dy > constants::CELL_SIZE - constants::COLLAPSE_DIST);
 }
 
 void drawGrid(sf::RenderWindow& window) {
-    for (uint32_t i = 0; i <= constants::WINDOW_W; i += constants::GRID_SIZE) {
+    for (uint32_t i = 0; i <= constants::WINDOW_W; i += constants::CELL_SIZE) {
         sf::Vertex line[] = {
             sf::Vertex(sf::Vector2f(i, 0),sf::Color::Black),
             sf::Vertex(sf::Vector2f(i, constants::WINDOW_H), sf::Color::Black)
         };
         window.draw(line, 2, sf::Lines);
     }
-    for (uint32_t i = 0; i <= constants::WINDOW_H; i += constants::GRID_SIZE) {
+    for (uint32_t i = 0; i <= constants::WINDOW_H; i += constants::CELL_SIZE) {
         sf::Vertex line[] = {
             sf::Vertex(sf::Vector2f(0, i), sf::Color::Black),
             sf::Vertex(sf::Vector2f(constants::WINDOW_W, i), sf::Color::Black)
@@ -105,7 +105,7 @@ void drawPolygon(sf::RenderWindow& window,
 }
 
 void drawArea(sf::RenderWindow& window, long double area) {
-    area /= std::pow(constants::GRID_SIZE, 2);
+    area /= std::pow(constants::CELL_SIZE, 2);
     geometry::ConvexPolygon polygon {
         geometry::Point{constants::WINDOW_W - 230.F, constants::WINDOW_H - 90.F},
         geometry::Point{constants::WINDOW_W * 1.F - 30, constants::WINDOW_H - 90.F},
@@ -163,6 +163,23 @@ void Logic::debug() {
     std::cout << std::endl;
 }
 
+void normPoint(geometry::Point& point) {
+    int32_t x = std::round(point.getX());
+    int32_t y = std::round(point.getY());
+    if (isIntegerCoords( sf::Vector2i(x, y) )) {
+        uint32_t new_x = x / constants::CELL_SIZE * constants::CELL_SIZE;
+        uint32_t new_y = y / constants::CELL_SIZE * constants::CELL_SIZE;
+        if (x % constants::CELL_SIZE > (constants::CELL_SIZE - x % constants::CELL_SIZE) % constants::CELL_SIZE) {
+            new_x += constants::CELL_SIZE;
+        }
+        if (y % constants::CELL_SIZE > (constants::CELL_SIZE - y % constants::CELL_SIZE) % constants::CELL_SIZE) {
+            new_y += constants::CELL_SIZE;
+        }
+
+        point = geometry::Point{ new_x * 1.F, new_y * 1.F};
+    }
+}
+
 void Logic::start() {
     // geometry::ConvexPolygon p1
     // { geometry::Point{243, 453}, geometry::Point{627, 83}, geometry::Point{762, 433}, geometry::Point{900, 200} };
@@ -187,6 +204,7 @@ void Logic::start() {
                 update_status();
                 sf::Vector2i mouse_pos = sf::Mouse::getPosition(window);
                 geometry::Point mouse_point = geometry::Point{1.F * mouse_pos.x, 1.F * mouse_pos.y};
+                normPoint(mouse_point);
 
                 if (is_debug) {
                     std::cout << mouse_pos.x << ' ' << mouse_pos.y << std::endl;
