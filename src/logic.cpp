@@ -173,10 +173,25 @@ void Logic::start() {
             if (event.type == sf::Event::Closed) {
                 window.close();
             }
-            if (event.type == sf::Event::MouseButtonPressed) {
+            if (event.type == sf::Event::MouseButtonPressed || event.type == sf::Event::MouseButtonReleased) {
                 update_status();
                 sf::Vector2i mouse_pos = sf::Mouse::getPosition(window);
                 geometry::Point mouse_point = geometry::Point{1.F * mouse_pos.x, 1.F * mouse_pos.y};
+
+                if (is_debug) {
+                    std::cout << mouse_pos.x << ' ' << mouse_pos.y << std::endl;
+                    std::cout << "[ " << isIntegerCoords(mouse_pos) << " ]" << std::endl;
+
+                    std::cout.precision(10);
+                    for (int i = 0; i < intersection_polygon.size(); i++) {
+                        std::cout << std::fixed << 
+                        intersection_polygon.getPointAt(i).getX() << ' ' << 
+                        intersection_polygon.getPointAt(i).getY() << std::endl; 
+                    }
+                    // std::cout << polygons[4].size() << std::endl;
+                    std::cout << std::fixed << intersection_polygon.area() << std::endl;
+                }
+
                 if (status == CREATING) {
                     if (first_drawn_point.getDistance(mouse_point) < constants::COLLAPSE_DIST) {
                         polygons.push_back(being_drawn_polygon);
@@ -196,10 +211,16 @@ void Logic::start() {
                             being_drawn_polygon.addPoint(mouse_point);   
                         }
                     }
+                    continue;
                 }
                 if (status == NOTHING) {
-                    first_drawn_point = mouse_point;
-                    being_drawn_polygon = geometry::ConvexPolygon{mouse_point};
+                    if (event.type == sf::Event::MouseButtonReleased) {
+                        first_drawn_point = mouse_point;
+                        being_drawn_polygon = geometry::ConvexPolygon{mouse_point};
+                    } else {
+                        first_drawn_point = mouse_point;
+                    }
+                    continue;
                     for (size_t i = 0; i < polygons.size(); i++) {
                         for (size_t j = 0; j < polygons[i].size(); j++) {
                             if (polygons[i].getPointAt(j).getDistance(mouse_point) < constants::COLLAPSE_DIST) {
@@ -214,9 +235,9 @@ void Logic::start() {
                         }
                     }
                     if (catch_vertex_id != -1) {
-                        break;
+                        continue;
                     }
-                    if (event.mouseButton.button == sf::Mouse::Left) {
+                    if (event.mouseButton.button == sf::Mouse::Right) {
                         for (size_t i = 0; i < polygons.size(); i++) {
                             if (polygons[i].isInside(mouse_point)) {
                                 grabbed_polygon_id = i;
@@ -224,23 +245,10 @@ void Logic::start() {
                             }
                         }
                         if (grabbed_polygon_id != -1) {
-                            break;
+                            continue;
                         }
                     }
                 }
-
-
-                // std::cout << mouse_pos.x << ' ' << mouse_pos.y << std::endl;
-                // std::cout << "[ " << isIntegerCoords(mouse_pos) << " ]" << std::endl;
-
-                // std::cout.precision(10);
-                // for (int i = 0; i < intersection_polygon.size(); i++) {
-                //     std::cout << std::fixed << 
-                //     intersection_polygon.getPointAt(i).getX() << ' ' << 
-                //     intersection_polygon.getPointAt(i).getY() << std::endl; 
-                // }
-                // // std::cout << polygons[4].size() << std::endl;
-                // std::cout << std::fixed << intersection_polygon.area() << std::endl;
             }
         }
 

@@ -10,6 +10,7 @@
 #include "triangle.h"
 
 enum status_t {NOTHING, CREATING, GRABBING, CATCHING};
+enum mouse_status_t {RELEASED, PRESSED};
 
 class Logic {
 private:
@@ -19,6 +20,7 @@ private:
     geometry::ConvexPolygon catch_polygon {};
     geometry::Point first_drawn_point {};
     status_t status = NOTHING;
+    mouse_status_t mouse_status = RELEASED;
     bool is_debug = false;
     int32_t grabbed_polygon_id {-1};
     int32_t catch_vertex_id {-1};
